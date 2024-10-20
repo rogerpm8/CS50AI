@@ -55,7 +55,7 @@ def load_data(directory):
 def main():
     if len(sys.argv) > 2:
         sys.exit("Usage: python degrees.py [directory]")
-    directory = sys.argv[1] if len(sys.argv) == 2 else "small"
+    directory = sys.argv[1] if len(sys.argv) == 2 else "large"
 
     # Load data from files into memory
     print("Loading data...")
@@ -81,7 +81,7 @@ def main():
             person1 = people[path[i][1]]["name"]
             person2 = people[path[i + 1][1]]["name"]
             movie = movies[path[i + 1][0]]["title"]
-            print(f"{i + 1}: {person1} and {person2} starred in {movie}")
+            print(f"{i + 1}: {person1 } and {person2} starred in {movie}")
 
 
 def shortest_path(source, target):
@@ -92,9 +92,50 @@ def shortest_path(source, target):
     If no possible path, returns None.
     """
 
-    # TODO
-    raise NotImplementedError
+    # Keep track of the number of states explored 
+    num_explored = 0
 
+    # Initialize frontier to just the starting position
+    start = Node(state=source, parent=None, action=None)
+    frontier = StackFrontier()
+    frontier.add(start)
+
+    # Initialize an empty explored set
+    explored = set()
+
+    #Keep looping until solution found
+    while True:
+
+        # If nothing in the frontier then no solution
+        if frontier.empty():
+            raise Exception("No solution")
+        
+        # Choose a node from the frontier
+        node = frontier.remove()
+        num_explored += 1
+
+        # If node is the goal, then we have a solution
+        if node.state == target:
+            movies = []
+            people = []
+            solution = []
+            while node.parent is not None:
+                movies.append(node.action)
+                people.append(node.state)
+                node = node.parent
+            movies.reverse()
+            people.reverse()
+            solution = [(movies[i], people[i]) for i in range(len(movies))]
+            return solution
+
+        # Mark node as explored
+        explored.add(node.state)
+
+        # Add neighbors to frontier
+        for movie_id, person_id in neighbors_for_person(node.state):
+            if not frontier.contains_state(person_id) and person_id not in explored:
+                child = Node(state=person_id, parent=node, action=movie_id)
+                frontier.add(child)
 
 def person_id_for_name(name):
     """
